@@ -1,3 +1,5 @@
 *.grib
 *.idx
 *.parquet
+*.nc
+.env
