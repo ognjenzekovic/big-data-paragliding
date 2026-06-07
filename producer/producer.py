@@ -94,4 +94,4 @@ while True:
 
     producer.flush()
     print(f"--- Batch poslat, cekam 60s ---", flush=True)
-    time.sleep(60)
+    time.sleep(15)
