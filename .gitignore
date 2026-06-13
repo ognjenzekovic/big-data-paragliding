@@ -3,3 +3,4 @@
 *.parquet
 *.nc
 .env
+__pycache__/

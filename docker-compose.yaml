@@ -11,6 +11,30 @@ services:
       - ./hadoop.env
     volumes:
       - namenode_data:/hadoop/dfs/name
+    healthcheck:
+      test: [ "CMD", "hdfs", "dfs", "-ls", "/" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hdfs-init:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: hdfs-init
+    depends_on:
+      namenode:
+        condition: service_healthy
+    env_file:
+      - ./hadoop.env
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        hadoop fs -mkdir -p /data/raw/era5
+        hadoop fs -mkdir -p /data/transformed/era5
+        hadoop fs -mkdir -p /data/curated
+        hadoop fs -chmod -R 777 /data
+        echo "HDFS init done!"
+    restart: "no"
 
   datanode:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
@@ -28,6 +52,9 @@ services:
     ports:
       - "8080:8080"
       - "7077:7077"
+      - "6066:6066"
+    environment:
+      - SPARK_MASTER_OPTS=-Dspark.master.rest.enabled=true
     env_file:
       - ./hadoop.env
 
@@ -80,6 +107,32 @@ services:
     depends_on:
       - kafka
     restart: on-failure
+
+  airflow:
+    build: ./airflow
+    container_name: airflow
+    depends_on:
+      - postgres
+    ports:
+      - "8081:8080"
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://paragliding:paragliding@postgres:5432/paragliding
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db init
+        airflow users create --username admin --password admin \
+          --firstname Admin --lastname Admin \
+          --role Admin --email admin@example.com
+        airflow scheduler &
+        airflow webserver
 
 volumes:
   namenode_data:
