@@ -10,8 +10,6 @@ spark.sparkContext.setLogLevel("WARN")
 
 df = spark.read.parquet("hdfs://namenode:9000/data/transformed/era5/")
 
-# Agregacija po mesecu - broj sati po kategoriji
-# Delimo sa brojem grid tacaka da dobijemo prosecne sate za lokaciju
 n_grid = df.select("latitude", "longitude").distinct().count()
 
 result = df.groupBy("month").agg(
@@ -26,7 +24,6 @@ result = df.groupBy("month").agg(
     ).alias("expert_hours")
 ).orderBy("month")
 
-# Window funkcija - kumulativni sati kroz godinu po kategoriji
 window = Window.orderBy("month").rowsBetween(
     Window.unboundedPreceding, Window.currentRow
 )

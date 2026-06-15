@@ -10,7 +10,6 @@ spark.sparkContext.setLogLevel("WARN")
 
 df = spark.read.parquet("hdfs://namenode:9000/data/transformed/era5/")
 
-# Definisi opasne uslove
 df_dangerous = df.withColumn("dangerous",
     F.when(
         (F.col("wind_speed") > 12) |
@@ -21,7 +20,6 @@ df_dangerous = df.withColumn("dangerous",
     ).otherwise(0)
 )
 
-# Distribucija po sezoni i dobu dana
 result = df_dangerous.groupBy("season", "time_of_day").agg(
     F.round(F.sum("dangerous") * 100.0 / F.count("*"), 1)
      .alias("dangerous_pct"),
@@ -30,7 +28,6 @@ result = df_dangerous.groupBy("season", "time_of_day").agg(
     F.count("*").alias("total_hours")
 ).orderBy("season", "time_of_day")
 
-# Window funkcija - rank po opasnosti unutar svake sezone
 window_rank = Window.partitionBy("season").orderBy(
     F.col("dangerous_pct").desc()
 )

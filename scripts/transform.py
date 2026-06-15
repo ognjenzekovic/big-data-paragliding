@@ -43,21 +43,18 @@ df_transformed = df_raw \
         F.col("cloud_base_m") < 0
     ) \
     .withColumn("flying_category",
-        # Expert - jak vetar OK, jaka termika OK, visok cloud base
         F.when(
             (F.col("wind_speed").between(2, 12)) &
             (F.col("cape") > 300) &
             (F.col("cloud_base_m") > 800) &
             (F.col("tcc") < 0.8),
             "expert"
-        # Beginner - srednji uslovi
         ).when(
             (F.col("wind_speed").between(1, 8)) &
             (F.col("cape").between(100, 800)) &
             (F.col("cloud_base_m") > 500) &
             (F.col("tcc") < 0.6),
             "beginner"
-        # Student - samo blagi uslovi, slaba termika
         ).when(
             (F.col("wind_speed").between(1, 5)) &
             (F.col("cape").between(50, 300)) &
@@ -85,7 +82,7 @@ df_transformed = df_raw \
          .when(F.col("month").isin(6, 7, 8), "summer")
          .otherwise("autumn")
     ) \
-    .drop("t2m", "d2m", "u10", "v10")  # ukloni sirove kolone
+    .drop("t2m", "d2m", "u10", "v10")
 
 print("Transformed schema:")
 df_transformed.printSchema()

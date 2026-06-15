@@ -40,7 +40,6 @@ parsed = raw_stream \
     .select("data.*") \
     .withColumn("event_time", F.to_timestamp("timestamp"))
 
-# Stream 1 - flying score
 scored = parsed \
     .withColumn("flying_score",
         F.when(F.col("wind_speed") > 12, 0)
@@ -59,8 +58,6 @@ scored = parsed \
          .otherwise("NO")
     )
 
-# Stream 2 - detekcija pogoršanja (lag kroz window)
-# Poređenje trenutnog wind_speed sa prosekom prethodnih 5 min
 wind_trend = scored \
     .withWatermark("event_time", "10 minutes") \
     .groupBy(
@@ -85,7 +82,6 @@ wind_trend = scored \
          .otherwise("OK")
     )
 
-# Stream 3 - alert sistem
 alerts = scored \
     .withColumn("alert",
         F.when(F.col("wind_speed") > 12, "DANGER_HIGH_WIND")
@@ -105,7 +101,6 @@ alerts = scored \
     ) \
     .filter(F.col("alert") != "SAFE")
 
-# Stream 4 - batch join sa istorijskim prosecima
 historical = spark.read.parquet(
     "hdfs://namenode:9000/data/curated/q3_hourly_conditions/"
 )
@@ -141,8 +136,6 @@ current_with_historical = scored \
         "conditions_vs_avg"
     )
 
-# Stream 5 - wind shear između lokacija
-# Detektuje velike razlike u vetru između lokacija u istom trenutku
 windowed_locations = scored \
     .withWatermark("event_time", "5 minutes") \
     .groupBy(
@@ -155,7 +148,6 @@ windowed_locations = scored \
         F.round(F.avg("flying_score"), 1).alias("avg_score")
     )
 
-# Funkcija za upis u PostgreSQL
 def write_to_postgres(batch_df, batch_id, table):
     df = batch_df
     if "window" in batch_df.columns:
@@ -174,7 +166,6 @@ def write_to_postgres(batch_df, batch_id, table):
         .mode("append") \
         .save()
 
-# Pokreni sve stream queries
 q1 = windowed_locations.writeStream \
     .outputMode("append") \
     .foreachBatch(lambda df, id: write_to_postgres(df, id, "weather_stream")) \

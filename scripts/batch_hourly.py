@@ -10,10 +10,8 @@ spark.sparkContext.setLogLevel("WARN")
 
 df = spark.read.parquet("hdfs://namenode:9000/data/transformed/era5/")
 
-# Filtriramo letacku sezonu
 df_season = df.filter(F.col("month").between(4, 9))
 
-# Agregacija po satu - prosek parametara i broj flyable sati
 hourly = df_season.groupBy("hour").agg(
     F.round(F.mean("cape"), 2).alias("avg_cape"),
     F.round(F.mean("blh"), 2).alias("avg_blh"),
@@ -25,8 +23,6 @@ hourly = df_season.groupBy("hour").agg(
     ).alias("flyable_pct")
 ).orderBy("hour")
 
-# Window funkcija - rolling average CAPE kroz 3 sata
-# Pokazuje kako se termicka aktivnost razvija kroz dan
 window_rolling = Window.orderBy("hour").rowsBetween(-1, 1)
 
 hourly = hourly \

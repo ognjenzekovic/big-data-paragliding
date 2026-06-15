@@ -9,7 +9,6 @@ import math
 
 API_KEY = os.environ.get("API_KEY", "")
 
-# Paraglajding lokacije u Srbiji
 LOCATIONS = [
     {"name": "Vrsac",     "lat": 45.1167, "lon": 21.3000},
     {"name": "Fruska_Gora", "lat": 45.1333, "lon": 19.7000},
@@ -51,7 +50,7 @@ def parse_weather(raw, location_name):
         "wind_speed": raw["wind"]["speed"],
         "wind_dir": raw["wind"].get("deg", 0),
         "wind_gust": raw["wind"].get("gust", 0),
-        "cloud_cover": raw["clouds"]["all"] / 100.0,  # 0-1 kao u ERA5
+        "cloud_cover": raw["clouds"]["all"] / 100.0,
         "visibility": raw.get("visibility", 0),
         "weather_desc": raw["weather"][0]["description"],
         "cloud_base_m": ((temp - dewpoint) / 8) * 1000
@@ -72,7 +71,6 @@ while True:
             raw = get_weather(loc["lat"], loc["lon"])
             data = parse_weather(raw, loc["name"])
 
-            # Racunamo cloud base
             data["cloud_base_m"] = (
                 (data["temp_c"] - data["dewpoint_c"]) / 8 * 1000
             )

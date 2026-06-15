@@ -10,7 +10,6 @@ spark.sparkContext.setLogLevel("WARN")
 
 df = spark.read.parquet("hdfs://namenode:9000/data/transformed/era5/")
 
-# Filtriramo letacku sezonu i letacke sate
 df_flying = df.filter(
     (F.col("month").between(4, 9)) &
     (F.col("hour").between(6, 21)) &
@@ -20,28 +19,26 @@ df_flying = df.filter(
 n_grid = df.select("latitude", "longitude").distinct().count()
 n_years = df.select("year").distinct().count()
 
-# Distribucija po satu i kategoriji
 hourly = df_flying.groupBy("hour").agg(
     F.round(
         F.sum(F.when(F.col("flying_category") == "student", 1).otherwise(0)) / n_grid / n_years, 1
-    ).alias("student_hours"),
+    ).alias("student_days"),
     F.round(
         F.sum(F.when(F.col("flying_category") == "beginner", 1).otherwise(0)) / n_grid / n_years, 1
-    ).alias("beginner_hours"),
+    ).alias("beginner_days"),
     F.round(
         F.sum(F.when(F.col("flying_category") == "expert", 1).otherwise(0)) / n_grid / n_years, 1
-    ).alias("expert_hours"),
+    ).alias("expert_days"),
     F.round(F.avg("cape"), 1).alias("avg_cape"),
     F.round(F.avg("blh"), 1).alias("avg_blh"),
     F.round(F.avg("wind_speed"), 2).alias("avg_wind"),
     F.round(F.avg("cloud_base_m"), 0).alias("avg_cloud_base")
 ).orderBy("hour")
 
-# Window funkcija - rank sata po broju expert sati
 window_lag = Window.orderBy("hour")
 
 hourly = hourly \
-    .withColumn("expert_rank", F.rank().over(Window.orderBy(F.col("expert_hours").desc()))) \
+    .withColumn("expert_rank", F.rank().over(Window.orderBy(F.col("expert_days").desc()))) \
     .withColumn("cape_change",
         F.round(F.col("avg_cape") - F.lag("avg_cape", 1).over(window_lag), 1)
     )

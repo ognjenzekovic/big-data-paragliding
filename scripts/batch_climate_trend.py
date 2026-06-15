@@ -10,7 +10,6 @@ spark.sparkContext.setLogLevel("WARN")
 
 df = spark.read.parquet("hdfs://namenode:9000/data/transformed/era5/")
 
-# Godisnji trend letackih uslova
 result = df.filter(
     F.col("month").between(4, 9)
 ).groupBy("year").agg(
@@ -24,7 +23,6 @@ result = df.filter(
     ).alias("flyable_pct")
 ).orderBy("year")
 
-# Window funkcija - trend u odnosu na prethodnu godinu
 window_lag = Window.orderBy("year")
 result = result \
     .withColumn("temp_trend",

@@ -10,10 +10,8 @@ spark.sparkContext.setLogLevel("WARN")
 
 df = spark.read.parquet("hdfs://namenode:9000/data/transformed/era5/")
 
-# Samo letacka sezona maj-avgust
 df_season = df.filter(F.col("month").between(5, 8))
 
-# Jutarnji parametri (6-9h) - samo topla jutra
 morning = df_season.filter(
     (F.col("hour").between(6, 9)) &
     (F.col("temp_c") > 10)
@@ -31,7 +29,6 @@ morning = df_season.filter(
          .otherwise("overcast")
     )
 
-# Popodnevni uslovi (12-16h)
 afternoon = df_season.filter(
     F.col("hour").between(12, 16)
 ).groupBy("year", "month", "day", "latitude", "longitude") \
@@ -41,14 +38,12 @@ afternoon = df_season.filter(
         F.round(F.avg("blh"), 2).alias("afternoon_blh")
     )
 
-# Join jutro i popodne
 joined = morning.join(
     afternoon,
     ["year", "month", "day", "latitude", "longitude"],
     "inner"
 )
 
-# Verovatnoca dobrih uslova po jutarnjem nebu
 result = joined.groupBy("morning_sky").agg(
     F.round(
         F.sum(F.when(
@@ -60,7 +55,6 @@ result = joined.groupBy("morning_sky").agg(
     F.count("*").alias("total_days")
 ).orderBy(F.col("flyable_pct").desc())
 
-# Window funkcija
 window_rank = Window.orderBy(F.col("flyable_pct").desc())
 result = result.withColumn("rank", F.rank().over(window_rank))
 

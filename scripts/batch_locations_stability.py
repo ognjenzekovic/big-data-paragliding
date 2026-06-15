@@ -10,13 +10,11 @@ spark.sparkContext.setLogLevel("WARN")
 
 df = spark.read.parquet("hdfs://namenode:9000/data/transformed/era5/")
 
-# Filtriramo samo letacke sate (ne zelimo da zima kvari varijansu)
 df_flying = df.filter(
     (F.col("month").between(4, 9)) &
     (F.col("hour").between(8, 18))
 )
 
-# Varijansa kljucnih parametara po lokaciji
 stability = df_flying.groupBy("latitude", "longitude").agg(
     F.round(F.stddev("wind_speed"), 3).alias("wind_stddev"),
     F.round(F.stddev("cape"), 3).alias("cape_stddev"),
@@ -27,8 +25,6 @@ stability = df_flying.groupBy("latitude", "longitude").agg(
     F.count("*").alias("total_hours")
 )
 
-# Kompozitni skor stabilnosti - manji je bolji
-# Normalizujemo svaku standardnu devijaciju
 stability = stability.withColumn(
     "stability_score",
     F.round(

@@ -10,13 +10,11 @@ spark.sparkContext.setLogLevel("WARN")
 
 df = spark.read.parquet("hdfs://namenode:9000/data/transformed/era5/")
 
-# Filtriramo letacku sezonu
 df_season = df.filter(
     (F.col("month").between(4, 9)) &
     (F.col("hour").between(8, 18))
 )
 
-# Korelacija CAPE i cloud base po mesecu
 result = df_season.groupBy("month").agg(
     F.round(F.corr("cape", "cloud_base_m"), 3).alias("cape_cloudbase_corr"),
     F.round(F.corr("cape", "blh"), 3).alias("cape_blh_corr"),
@@ -25,7 +23,6 @@ result = df_season.groupBy("month").agg(
     F.round(F.avg("blh"), 0).alias("avg_blh")
 ).orderBy("month")
 
-# Window funkcija - rank meseca po korelaciji
 window_rank = Window.orderBy(F.col("cape_cloudbase_corr").desc())
 result = result.withColumn(
     "correlation_rank",

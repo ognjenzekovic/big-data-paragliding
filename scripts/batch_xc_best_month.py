@@ -10,7 +10,6 @@ spark.sparkContext.setLogLevel("WARN")
 
 df = spark.read.parquet("hdfs://namenode:9000/data/transformed/era5/")
 
-# XC uslovi - jak CAPE, visok BLH, umeren vetar
 df_xc = df.withColumn("xc_suitable",
     F.when(
         (F.col("cape") > 500) &
@@ -35,11 +34,9 @@ result = df_xc.groupBy("month").agg(
     F.round(F.avg("wind_speed"), 2).alias("avg_wind")
 ).orderBy("month")
 
-# Window funkcija - rank meseca po XC danima
 window_rank = Window.orderBy(F.col("xc_days").desc())
 result = result.withColumn("xc_rank", F.rank().over(window_rank))
 
-# Window funkcija - razlika u odnosu na prethodni mesec
 window_lag = Window.orderBy("month")
 result = result.withColumn(
     "xc_days_change",

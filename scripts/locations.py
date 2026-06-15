@@ -1,22 +1,18 @@
 LOCATIONS = [
-    # Vojvodina
     (45.12, 21.31, "Vrsac"),
     (45.13, 19.70, "Fruska_Gora_Iriski_Venac"),
     (45.08, 19.85, "Fruska_Gora_Brankovac"),
-    # Centralna Srbija
     (44.12, 20.05, "Divcibare"),
     (44.69, 20.52, "Avala"),
     (44.27, 20.93, "Rudnik"),
     (43.90, 19.50, "Tara"),
     (43.73, 19.72, "Zlatibor"),
     (43.62, 19.95, "Javor"),
-    # Juzna i Istocna Srbija
     (43.77, 21.89, "Rtanj"),
     (43.38, 22.68, "Stara_Planina"),
     (43.27, 22.12, "Suva_Planina"),
     (43.52, 21.35, "Jastrebac"),
     (42.98, 21.96, "Vlasina"),
-    # Planine
     (43.28, 20.80, "Kopaonik"),
     (43.15, 20.52, "Goc"),
     (43.45, 20.28, "Golija"),
