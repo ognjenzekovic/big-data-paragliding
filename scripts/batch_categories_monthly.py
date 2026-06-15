@@ -32,8 +32,14 @@ window = Window.orderBy("month").rowsBetween(
 )
 
 result = result \
-    .withColumn("cumulative_student", F.sum("student_hours").over(window)) \
-    .withColumn("cumulative_expert", F.sum("expert_hours").over(window))
+    .withColumn(
+        "cumulative_student",
+        F.round(F.sum("student_hours").over(window), 1)
+    ) \
+    .withColumn(
+        "cumulative_expert",
+        F.round(F.sum("expert_hours").over(window), 1)
+    )
 
 print("\n=== Q1: LETACKI SATI PO MESECU ===")
 result.show()

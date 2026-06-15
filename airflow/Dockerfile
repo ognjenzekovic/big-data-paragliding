@@ -1,4 +1,4 @@
-FROM apache/airflow:2.7.2-python3.9
+FROM apache/airflow:2.7.2-python3.7
 
 USER root
 RUN apt-get update && apt-get install -y default-jdk curl && \

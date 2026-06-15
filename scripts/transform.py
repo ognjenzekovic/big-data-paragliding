@@ -43,24 +43,27 @@ df_transformed = df_raw \
         F.col("cloud_base_m") < 0
     ) \
     .withColumn("flying_category",
+        # Expert - jak vetar OK, jaka termika OK, visok cloud base
         F.when(
-            (F.col("wind_speed") < 5) &
-            (F.col("cape") > 100) &
-            (F.col("cloud_base_m") > 300) &
-            (F.col("tcc") < 0.5),
-            "student"
-        ).when(
-            (F.col("wind_speed") < 8) &
-            (F.col("cape") > 200) &
-            (F.col("cloud_base_m") > 500) &
-            (F.col("tcc") < 0.6),
-            "beginner"
-        ).when(
-            (F.col("wind_speed") < 12) &
+            (F.col("wind_speed").between(2, 12)) &
             (F.col("cape") > 300) &
             (F.col("cloud_base_m") > 800) &
             (F.col("tcc") < 0.8),
             "expert"
+        # Beginner - srednji uslovi
+        ).when(
+            (F.col("wind_speed").between(1, 8)) &
+            (F.col("cape").between(100, 800)) &
+            (F.col("cloud_base_m") > 500) &
+            (F.col("tcc") < 0.6),
+            "beginner"
+        # Student - samo blagi uslovi, slaba termika
+        ).when(
+            (F.col("wind_speed").between(1, 5)) &
+            (F.col("cape").between(50, 300)) &
+            (F.col("cloud_base_m") > 300) &
+            (F.col("tcc") < 0.5),
+            "student"
         ).otherwise("not_flyable")
     ) \
     .withColumn("thermal_strength",
